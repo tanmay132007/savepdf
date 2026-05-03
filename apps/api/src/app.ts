@@ -4,6 +4,9 @@ import express, { type NextFunction, type Request, type Response } from "express
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import { ZodError } from "zod";
+import { adminMiddleware } from "./middleware/adminMiddleware";
+import { authMiddleware } from "./middleware/authMiddleware";
+import { adminRouter } from "./routes/admin";
 import { authRouter } from "./routes/auth";
 import { pdfRouter } from "./routes/pdf";
 import { userRouter } from "./routes/user";
@@ -41,6 +44,7 @@ app.get("/health", (_req, res) => {
 app.use("/api/auth", authRouter);
 app.use("/api/pdf", pdfRouter);
 app.use("/api/user", userRouter);
+app.use("/api/admin", authMiddleware, adminMiddleware, adminRouter);
 
 app.use(
   (
