@@ -23,3 +23,18 @@ GEMINI_API_KEY=
 `PORT` is provided by Railway automatically, so you usually do not need to set it.
 Use the Supabase service role key only on the backend service. Do not expose it in
 frontend variables.
+
+## Railway PDF processor deployment
+
+Deploy `services/pdf-processor` as a separate Python service. Its dependencies are
+listed in `services/pdf-processor/requirements.txt`.
+
+Set these variables for the PDF processor service:
+
+```env
+SUPABASE_URL=
+SUPABASE_SERVICE_ROLE_KEY=
+SUPABASE_BUCKET=pdf-files
+NODE_API_URL=
+GEMINI_API_KEY=
+```

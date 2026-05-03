@@ -1,0 +1,14 @@
+deep-translator
+fastapi
+google-generativeai
+httpx
+img2pdf
+ocrmypdf
+pdf2docx
+pikepdf
+pydantic
+pymupdf
+python-dotenv
+reportlab
+supabase
+uvicorn
