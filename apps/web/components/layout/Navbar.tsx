@@ -70,13 +70,22 @@ export function Navbar({ onGetStarted }: NavbarProps) {
           >
             Sign In
           </Link>
-          <button
-            type="button"
-            onClick={onGetStarted ?? (() => scrollTo("upload"))}
-            className="rounded-md bg-red-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-red-700"
-          >
-            Get Started
-          </button>
+          {onGetStarted ? (
+            <button
+              type="button"
+              onClick={onGetStarted}
+              className="rounded-md bg-red-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-red-700"
+            >
+              Get Started
+            </button>
+          ) : (
+            <Link
+              href="/signup"
+              className="rounded-md bg-red-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-red-700"
+            >
+              Sign Up
+            </Link>
+          )}
         </div>
       </nav>
     </header>

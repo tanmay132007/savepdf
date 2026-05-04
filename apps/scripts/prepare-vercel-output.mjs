@@ -1,11 +1,12 @@
 import {
   cpSync,
   existsSync,
+  readdirSync,
   readFileSync,
   rmSync,
   writeFileSync
 } from "node:fs";
-import { join } from "node:path";
+import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 
 const source = "web/.next";
 const target = ".next";
@@ -17,34 +18,52 @@ if (!existsSync(source)) {
 rmSync(target, { recursive: true, force: true });
 cpSync(source, target, { recursive: true });
 
-const traceFiles = [
-  "next-minimal-server.js.nft.json",
-  "next-server.js.nft.json",
-  "server/pages/_app.js.nft.json",
-  "server/pages/_document.js.nft.json",
-  "server/pages/_error.js.nft.json",
-  "server/app/page.js.nft.json",
-  "server/app/_not-found/page.js.nft.json"
-];
+const sourceRoot = resolve(source);
+const targetRoot = resolve(target);
 
-for (const traceFile of traceFiles) {
-  const path = join(target, traceFile);
+const toPosixPath = (path) => path.split(sep).join("/");
 
-  if (!existsSync(path)) {
+const isInside = (parent, child) => {
+  const path = relative(parent, child);
+  return path === "" || (!path.startsWith("..") && !isAbsolute(path));
+};
+
+const listTraceFiles = (directory, prefix = "") =>
+  readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+    const path = join(directory, entry.name);
+    const relativePath = join(prefix, entry.name);
+
+    if (entry.isDirectory()) {
+      return listTraceFiles(path, relativePath);
+    }
+
+    return entry.isFile() && entry.name.endsWith(".nft.json")
+      ? [relativePath]
+      : [];
+  });
+
+for (const traceFile of listTraceFiles(target)) {
+  const sourcePath = join(source, traceFile);
+  const targetPath = join(target, traceFile);
+
+  if (!existsSync(sourcePath) || !existsSync(targetPath)) {
     continue;
   }
 
-  const trace = JSON.parse(readFileSync(path, "utf8"));
+  const sourceDirectory = dirname(sourcePath);
+  const targetDirectory = dirname(targetPath);
+  const trace = JSON.parse(readFileSync(targetPath, "utf8"));
 
   if (Array.isArray(trace.files)) {
-    trace.files = trace.files.map((file) =>
-      file.replace(/^((?:\.\.\/)+)node_modules\//, (match, parents) => {
-        const segments = parents.match(/\.\.\//g) ?? [];
-        const shortened = segments.slice(1).join("");
-        return `${shortened}node_modules/`;
-      })
-    );
+    trace.files = trace.files.map((file) => {
+      const sourceFilePath = resolve(sourceDirectory, file);
+      const absolutePath = isInside(sourceRoot, sourceFilePath)
+        ? resolve(targetRoot, relative(sourceRoot, sourceFilePath))
+        : sourceFilePath;
+
+      return toPosixPath(relative(targetDirectory, absolutePath));
+    });
   }
 
-  writeFileSync(path, `${JSON.stringify(trace)}\n`);
+  writeFileSync(targetPath, `${JSON.stringify(trace)}\n`);
 }
