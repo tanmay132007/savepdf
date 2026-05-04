@@ -1,0 +1,41 @@
+
+{
+  "name": "FreePDF Editor",
+  "short_name": "FreePDF",
+  "description": "29 free professional online PDF tools. Merge, Compress, Convert, and Protect PDF with industry-standard encryption.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FAFAFA",
+  "theme_color": "#dc2626",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "https://ais-dev-xknlytronzpum4leidwzeu-572402183756.asia-southeast1.run.app/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://ais-dev-xknlytronzpum4leidwzeu-572402183756.asia-southeast1.run.app/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "categories": ["productivity", "utilities"],
+  "shortcuts": [
+    {
+      "name": "Merge PDF",
+      "url": "/tools/merge-pdf",
+      "icons": [{ "src": "favicon.ico", "sizes": "64x64" }]
+    },
+    {
+      "name": "Compress PDF",
+      "url": "/tools/compress-pdf",
+      "icons": [{ "src": "favicon.ico", "sizes": "64x64" }]
+    }
+  ]
+}

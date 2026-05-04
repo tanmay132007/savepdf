@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://ais-dev-xknlytronzpum4leidwzeu-572402183756.asia-southeast1.run.app/</loc>
+    <lastmod>2026-05-03</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://ais-dev-xknlytronzpum4leidwzeu-572402183756.asia-southeast1.run.app/pricing</loc>
+    <lastmod>2026-05-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://ais-dev-xknlytronzpum4leidwzeu-572402183756.asia-southeast1.run.app/about</loc>
+    <lastmod>2026-05-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://ais-dev-xknlytronzpum4leidwzeu-572402183756.asia-southeast1.run.app/contact</loc>
+    <lastmod>2026-05-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://ais-dev-xknlytronzpum4leidwzeu-572402183756.asia-southeast1.run.app/blog</loc>
+    <lastmod>2026-05-03</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <!-- Blog Posts -->
+  <url>
+    <loc>https://ais-dev-xknlytronzpum4leidwzeu-572402183756.asia-southeast1.run.app/blog/how-to-compress-pdf-without-losing-quality</loc>
+    <lastmod>2026-04-15</lastmod>
+    <priority>0.6</priority>
+  </url>
+  <!-- Tools - simplified example -->
+  <url>
+    <loc>https://ais-dev-xknlytronzpum4leidwzeu-572402183756.asia-southeast1.run.app/tools/merge-pdf</loc>
+    <lastmod>2026-05-03</lastmod>
+    <priority>0.9</priority>
+  </url>
+</urlset>
