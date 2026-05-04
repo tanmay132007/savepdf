@@ -1,8 +1,14 @@
 {
-"scripts": {
+  "name": "freepdf",
+  "private": true,
+  "workspaces": [
+    "apps/web"
+  ],
+  "scripts": {
   "dev:api": "ts-node apps/api/src/app.ts",
   "typecheck": "tsc --noEmit",
-  "build": "tsc",
+  "build": "npm run build --workspace freepdf-web",
+  "build:api": "tsc",
   "start": "node dist/apps/api/src/app.js"
 },
   "dependencies": {
