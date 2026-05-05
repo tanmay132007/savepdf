@@ -44,7 +44,7 @@ app.include_router(ocr.router, prefix="/process")
 app.include_router(compare.router, prefix="/process")
 
 
-@app.post("/health")
+@app.get("/health")
 def health():
     return {"status": "ok"}
 

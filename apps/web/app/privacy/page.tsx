@@ -21,7 +21,7 @@ const sections = [
   },
   {
     title: "Third Party Services",
-    body: "FreePDF may use infrastructure providers such as Supabase and Railway for authentication, storage, processing, and service operations."
+    body: "FreePDF may use infrastructure providers such as Supabase and Render for authentication, storage, processing, and service operations."
   },
   {
     title: "Contact",

@@ -16,10 +16,10 @@ User Browser
 Vercel (Next.js 14 Frontend)
     │
     ▼
-Railway (Node.js Express API) ←──── Upstash Redis (Job Queue)
+Render (Node.js Express API) ←──── Upstash Redis (Job Queue)
     │
     ▼
-Railway (Python FastAPI PDF Processor)
+Render (Python FastAPI PDF Processor)
     │
     ▼
 Supabase (PostgreSQL + Storage)
@@ -40,7 +40,7 @@ Supabase (PostgreSQL + Storage)
 | Storage | Supabase Storage | File storage |
 | AI | Google Gemini (free) | Summarizer + OCR |
 | Deploy (FE) | Vercel | Frontend hosting |
-| Deploy (BE) | Railway | Backend hosting |
+| Deploy (BE) | Render | Backend hosting |
 | Email | Resend | Transactional emails |
 
 ---
@@ -139,7 +139,7 @@ cd services/pdf-processor && uvicorn main:app --reload --port 8000
 
 ### Frontend — `apps/web/.env.local`
 ```env
-NEXT_PUBLIC_API_URL=https://your-api.up.railway.app
+NEXT_PUBLIC_API_BASE_URL=https://freepdf-api.onrender.com
 NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 ```
@@ -167,7 +167,7 @@ SUPABASE_URL=https://xxx.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 SUPABASE_BUCKET=pdf-files
 GEMINI_API_KEY=your-gemini-api-key
-NODE_API_URL=https://your-api.up.railway.app
+NODE_API_URL=https://freepdf-api.onrender.com
 PORT=8000
 ```
 
@@ -248,36 +248,52 @@ User uploads PDF
 
 ---
 
-## 🖥️ Backend Deployment — Railway
+## 🖥️ Backend Deployment — Render
 
-**What is Railway?**  
-Railway is a cloud platform to deploy Node.js and Python apps directly from GitHub. We deploy two separate services.
+**What is Render?**  
+Render is a cloud platform to deploy Node.js, Python, and Docker services directly from GitHub. We deploy two separate backend services.
 
-**Free tier:** $5/month credit included.
+**Free tier:** Free web services are available for small projects.
 
-### Service 1 — Node.js API
-1. Go to [railway.app](https://railway.app) → Sign up with GitHub
-2. **New Project → Deploy from GitHub** → select `freepdf`
-3. Root Directory: `apps/api`
-4. Add environment variables (from `apps/api/.env` above)
-5. **Settings → Networking → Generate Domain** → copy URL
+### Blueprint deployment
+The root `render.yaml` defines both Render services:
 
-### Service 2 — Python PDF Processor
-1. In same Railway project → **+ Add → GitHub Repo**
-2. Same `freepdf` repo
-3. **Settings → Source → Root Directory:** `services/pdf-processor`
-4. Add environment variables (from Python `.env` above)
-5. **Settings → Networking → Generate Domain** → copy URL
+- `freepdf-api` — Node.js Express API
+- `freepdf-pdf-processor` — Dockerized Python FastAPI PDF processor
 
-### Railway Environment Variables
-Add all variables from `.env` files above in:  
-**Railway → your service → Variables tab**
+Create the services from the Render Dashboard Blueprint flow:
+`https://dashboard.render.com/blueprint/new?repo=https://github.com/tanmay132007/freepdf`
+
+### Render Environment Variables
+Add values marked `sync: false` in the Render Dashboard before deploying.
+
+For the Node.js API service:
+
+```env
+SUPABASE_URL=
+SUPABASE_SERVICE_ROLE_KEY=
+FRONTEND_URL=https://freepdf-psi.vercel.app
+REDIS_URL=
+R2_ACCOUNT_ID=
+R2_ACCESS_KEY_ID=
+R2_SECRET_ACCESS_KEY=
+R2_BUCKET_NAME=pdf-files
+GEMINI_API_KEY=
+```
+
+For the PDF processor service:
+
+```env
+SUPABASE_URL=
+SUPABASE_SERVICE_ROLE_KEY=
+SUPABASE_BUCKET=pdf-files
+NODE_API_URL=https://freepdf-api.onrender.com
+GEMINI_API_KEY=
+```
 
 ### Ports
-| Service | Port |
-|---------|------|
-| Node.js API | 4000 |
-| Python FastAPI | 8000 |
+Render provides `PORT` automatically. The Node API binds with
+`process.env.PORT`, and the PDF processor starts uvicorn with `--port $PORT`.
 
 ---
 
@@ -297,14 +313,14 @@ Vercel is the platform built for Next.js. It provides global CDN, automatic depl
    - **Build Command:** `npm run build`
 4. Add Environment Variables:
    ```
-   NEXT_PUBLIC_API_URL=https://your-api.up.railway.app
+   NEXT_PUBLIC_API_BASE_URL=https://freepdf-api.onrender.com
    NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
    ```
 5. Click **Deploy**
 
 ### After deployment
-Update Railway variable:
+Update Render API service variable:
 ```
 FRONTEND_URL=https://freepdf-psi.vercel.app
 ```
@@ -360,12 +376,12 @@ Every `git push origin main` automatically redeploys to Vercel.
 - [ ] Supabase Auth configured with correct redirect URLs
 - [ ] Supabase Storage bucket `pdf-files` created
 - [ ] Upstash Redis database created and URL copied
-- [ ] Railway Node.js API deployed and online
-- [ ] Railway Python processor deployed and online
-- [ ] All environment variables added to Railway
+- [ ] Render Node.js API deployed and online
+- [ ] Render Python processor deployed and online
+- [ ] All environment variables added to Render
 - [ ] Vercel project created with correct root directory
 - [ ] All environment variables added to Vercel
-- [ ] Railway `FRONTEND_URL` updated with Vercel domain
+- [ ] Render `FRONTEND_URL` updated with Vercel domain
 - [ ] Supabase URL Configuration updated with Vercel domain
 - [ ] Make admin user in Supabase SQL editor
 
@@ -414,6 +430,59 @@ docker-compose up
 **Tanmay Rajput**  
 B.Tech CSE — Galgotias University (Class of 2028)  
 [GitHub](https://github.com/tanmay132007) · [LinkedIn](https://www.linkedin.com/in/tanmaysinghrajput/)
+
+---
+
+## External service updates after moving to Render
+
+The root `render.yaml` defines both Render services. Fill secret values marked
+with `sync: false` in the Render Dashboard before deploying.
+
+Update these dashboard values during the migration. These are configuration
+changes, not code changes.
+
+### Vercel
+
+Set the frontend API base URL to the Render API URL:
+
+```env
+NEXT_PUBLIC_API_BASE_URL=https://freepdf-api.onrender.com
+```
+
+If the service name changes in Render, use the matching `.onrender.com` URL.
+After changing the variable, redeploy the Vercel frontend. Do not change Vercel
+project settings unrelated to the API URL.
+
+### Render
+
+Copy the existing backend secrets into the Render services:
+
+```env
+SUPABASE_URL=
+SUPABASE_SERVICE_ROLE_KEY=
+REDIS_URL=
+R2_ACCOUNT_ID=
+R2_ACCESS_KEY_ID=
+R2_SECRET_ACCESS_KEY=
+GEMINI_API_KEY=
+```
+
+Set the API service `FRONTEND_URL` to the deployed Vercel frontend origin. Set
+the PDF processor `NODE_API_URL` to the Render API origin if callbacks need to
+call the API service.
+
+### Supabase
+
+No schema change is required for the Render migration. If Supabase Auth URL
+settings are configured, keep the Site URL and redirect allow-list pointed at
+the deployed frontend URL, not the backend API URL. Do not expose
+`SUPABASE_SERVICE_ROLE_KEY` to any browser-facing Vercel variable.
+
+### Upstash
+
+Keep using the existing Redis instance. Set Render's `REDIS_URL` to the Upstash
+Redis connection string supported by BullMQ/ioredis, preferably the TLS
+`rediss://...` URL. Do not use Upstash REST-only variables for this queue.
 
 ---
 
