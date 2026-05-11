@@ -57,14 +57,20 @@ export function Footer() {
             Legal
           </h3>
           <div className="mt-4 flex flex-col gap-3 text-sm text-white/60">
+            <Link href="/gemini-key" className="hover:text-white">
+              Gemini Key
+            </Link>
             <Link href="/privacy" className="hover:text-white">
               Privacy Policy
             </Link>
             <Link href="/terms" className="hover:text-white">
               Terms of Service
             </Link>
-            <a href="mailto:support@freepdf.app" className="hover:text-white">
-              support@freepdf.app
+            <a
+              href="https://apps-freepdf.vercel.app"
+              className="hover:text-white"
+            >
+              apps-freepdf.vercel.app
             </a>
           </div>
         </div>

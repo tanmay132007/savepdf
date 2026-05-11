@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { ArrowLeft, FileText } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { ToolUpload } from "@/components/tools/ToolUpload";
 import { Footer } from "@/components/layout/Footer";
@@ -59,21 +59,7 @@ export default function ToolPage({ params }: ToolPageProps) {
         </p>
 
         <div className="mt-10">
-          {tool.acceptedFiles.length > 0 ? (
-            <ToolUpload tool={tool} />
-          ) : (
-            <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-8">
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-md bg-red-600 text-white">
-                <FileText aria-hidden="true" size={24} />
-              </div>
-              <h2 className="text-xl font-bold">Enter a webpage URL</h2>
-              <input
-                type="url"
-                placeholder="https://example.com"
-                className="mt-5 w-full rounded-md border border-zinc-200 px-4 py-3 outline-none transition focus:border-red-500"
-              />
-            </div>
-          )}
+          <ToolUpload tool={tool} />
         </div>
       </section>
       <Footer />

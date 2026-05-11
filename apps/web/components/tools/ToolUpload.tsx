@@ -1,166 +1,85 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { FileDropzone } from "@/components/tools/FileDropzone";
-import { API_BASE_URL, getAccessToken, parseApiResponse } from "@/lib/api";
+import {
+  needsGemini,
+  processClientPdfTool,
+  type ToolOptions
+} from "@/lib/clientPdfTools";
 import type { Tool } from "@/lib/tools";
 
 type ToolUploadProps = {
   tool: Tool;
 };
 
-type UploadResponse = {
-  operation_id: string;
-};
-
-type ProcessResponse = {
-  job_id: string;
-};
-
-type JobResponse = {
-  status: string;
-  progress?: number | object;
-  downloadUrl: string | null;
-};
-
-const toolApiNames: Record<string, string> = {
-  "merge-pdf": "merge",
-  "split-pdf": "split",
-  "compress-pdf": "compress",
-  "pdf-to-word": "pdf-to-word",
-  "pdf-to-excel": "pdf-to-excel",
-  "pdf-to-jpg": "pdf-to-jpg",
-  "jpg-to-pdf": "jpg-to-pdf",
-  "word-to-pdf": "word-to-pdf",
-  "protect-pdf": "protect",
-  "unlock-pdf": "unlock",
-  "watermark-pdf": "watermark",
-  "rotate-pdf": "rotate",
-  "ocr-pdf": "ocr",
-  "compare-pdf": "compare",
-  "edit-pdf": "edit",
-  "repair-pdf": "repair",
-  "organize-pdf": "organize",
-  "crop-pdf": "crop",
-  "page-numbers": "page-numbers",
-  "excel-to-pdf": "excel-to-pdf",
-  "ppt-to-pdf": "powerpoint-to-pdf",
-  "pdf-to-ppt": "pdf-to-powerpoint"
-};
-
-function delay(ms: number): Promise<void> {
-  return new Promise((resolve) => {
-    window.setTimeout(resolve, ms);
-  });
-}
-
 export function ToolUpload({ tool }: ToolUploadProps) {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [geminiApiKey, setGeminiApiKey] = useState("");
+  const [prompt, setPrompt] = useState("");
+  const [language, setLanguage] = useState("English");
+  const [text, setText] = useState("");
+  const [url, setUrl] = useState("");
   const [status, setStatus] = useState("");
   const [error, setError] = useState("");
   const [downloadUrl, setDownloadUrl] = useState("");
+  const [downloadName, setDownloadName] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const usesGemini = needsGemini(tool.slug);
+  const requiresUpload = tool.acceptedFiles.length > 0;
 
-  const apiTool = toolApiNames[tool.slug];
+  useEffect(() => {
+    setGeminiApiKey(window.localStorage.getItem("freepdf_gemini_api_key") ?? "");
+  }, []);
 
-  async function uploadFile(file: File, token: string): Promise<UploadResponse> {
-    const formData = new FormData();
-    formData.append("file", file);
-
-    const response = await fetch(`${API_BASE_URL}/api/pdf/upload`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`
-      },
-      body: formData
-    });
-
-    return parseApiResponse<UploadResponse>(response);
-  }
-
-  async function startProcessing(
-    operationId: string,
-    token: string
-  ): Promise<ProcessResponse> {
-    const response = await fetch(`${API_BASE_URL}/api/pdf/${apiTool}`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        operation_id: operationId,
-        options: {}
-      })
-    });
-
-    return parseApiResponse<ProcessResponse>(response);
-  }
-
-  async function waitForJob(jobId: string, token: string): Promise<JobResponse> {
-    for (let attempt = 0; attempt < 60; attempt += 1) {
-      const response = await fetch(`${API_BASE_URL}/api/pdf/jobs/${jobId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-      const job = await parseApiResponse<JobResponse>(response);
-
-      if (job.status === "completed") {
-        return job;
-      }
-
-      if (job.status === "failed") {
-        throw new Error("PDF processing failed.");
-      }
-
-      setStatus(`Processing ${tool.name.toLowerCase()}...`);
-      await delay(2000);
+  const helperText = useMemo(() => {
+    if (tool.slug === "organize-pdf") {
+      return "Current browser action: reverse page order.";
     }
 
-    throw new Error("Processing is taking longer than expected.");
-  }
+    if (tool.slug === "crop-pdf") {
+      return "Current browser action: trim a small border from every page.";
+    }
+
+    if (tool.slug === "redact-pdf") {
+      return "Current browser action: apply a black redaction bar on the first page.";
+    }
+
+    if (usesGemini) {
+      return "This sends the selected file to Google Gemini using your API key from this browser.";
+    }
+
+    return "";
+  }, [tool.slug, usesGemini]);
 
   async function handleProcess() {
-    const token = getAccessToken();
-
-    if (!apiTool) {
-      setError("This tool is not connected to the PDF server yet.");
-      return;
-    }
-
-    if (!token) {
-      setError("Please sign in before processing files.");
-      return;
-    }
-
-    if (selectedFiles.length === 0) {
+    if (requiresUpload && selectedFiles.length === 0) {
       setError("Choose a file first.");
-      return;
-    }
-
-    if (selectedFiles.length > 1) {
-      setError("Multi-file processing is not connected to the API yet.");
       return;
     }
 
     setError("");
     setDownloadUrl("");
+    setDownloadName("");
     setIsProcessing(true);
 
     try {
-      setStatus("Uploading file...");
-      const upload = await uploadFile(selectedFiles[0], token);
-
-      setStatus("Starting PDF job...");
-      const process = await startProcessing(upload.operation_id, token);
-
-      const job = await waitForJob(process.job_id, token);
-      if (!job.downloadUrl) {
-        throw new Error("The server finished without a download URL.");
+      const options: ToolOptions = {
+        geminiApiKey,
+        prompt,
+        language,
+        text,
+        url
+      };
+      if (geminiApiKey) {
+        window.localStorage.setItem("freepdf_gemini_api_key", geminiApiKey);
       }
+      setStatus(`Processing ${tool.name.toLowerCase()}...`);
+      const result = await processClientPdfTool(tool.slug, selectedFiles, options);
+      const objectUrl = URL.createObjectURL(result.blob);
 
-      setDownloadUrl(job.downloadUrl);
+      setDownloadUrl(objectUrl);
+      setDownloadName(result.filename);
       setStatus("Your file is ready.");
     } catch (processError) {
       setError(
@@ -176,33 +95,126 @@ export function ToolUpload({ tool }: ToolUploadProps) {
 
   return (
     <div>
-      <FileDropzone
-        accept={tool.acceptedFiles}
-        maxSizeMB={25}
-        multiple={tool.multiple}
-        onFilesSelected={(files) => {
-          setSelectedFiles(files);
-          setError("");
-          setDownloadUrl("");
-          setStatus("");
-        }}
-        disabled={isProcessing}
-      />
+      {requiresUpload ? (
+        <FileDropzone
+          accept={tool.acceptedFiles}
+          maxSizeMB={25}
+          multiple={tool.multiple}
+          onFilesSelected={(files) => {
+            if (downloadUrl) {
+              URL.revokeObjectURL(downloadUrl);
+            }
+            setSelectedFiles(files);
+            setError("");
+            setDownloadUrl("");
+            setDownloadName("");
+            setStatus("");
+          }}
+          disabled={isProcessing}
+        />
+      ) : (
+        <div className="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm">
+          <label className="text-sm font-bold text-navy" htmlFor="tool-url">
+            Webpage URL
+          </label>
+          <input
+            id="tool-url"
+            type="url"
+            value={url}
+            onChange={(event) => setUrl(event.target.value)}
+            placeholder="https://example.com"
+            className="mt-3 w-full rounded-md border border-zinc-200 px-4 py-3 outline-none transition focus:border-red-500"
+          />
+        </div>
+      )}
+
+      {usesGemini ? (
+        <div className="mt-5 rounded-lg border border-zinc-200 bg-white p-5 text-left shadow-sm">
+          <label className="text-sm font-bold text-navy" htmlFor="gemini-key">
+            Gemini API key
+          </label>
+          <input
+            id="gemini-key"
+            type="password"
+            value={geminiApiKey}
+            onChange={(event) => setGeminiApiKey(event.target.value)}
+            placeholder="AIza..."
+            className="mt-3 w-full rounded-md border border-zinc-200 px-4 py-3 outline-none transition focus:border-red-500"
+          />
+          {tool.slug === "translate-pdf" ? (
+            <>
+              <label
+                className="mt-4 block text-sm font-bold text-navy"
+                htmlFor="target-language"
+              >
+                Target language
+              </label>
+              <input
+                id="target-language"
+                value={language}
+                onChange={(event) => setLanguage(event.target.value)}
+                className="mt-3 w-full rounded-md border border-zinc-200 px-4 py-3 outline-none transition focus:border-red-500"
+              />
+            </>
+          ) : null}
+          <label className="mt-4 block text-sm font-bold text-navy" htmlFor="ai-prompt">
+            Prompt
+          </label>
+          <textarea
+            id="ai-prompt"
+            value={prompt}
+            onChange={(event) => setPrompt(event.target.value)}
+            placeholder="Optional custom instruction"
+            rows={3}
+            className="mt-3 w-full rounded-md border border-zinc-200 px-4 py-3 outline-none transition focus:border-red-500"
+          />
+        </div>
+      ) : null}
+
+      {["watermark-pdf", "sign-pdf", "edit-pdf"].includes(tool.slug) ? (
+        <div className="mt-5 rounded-lg border border-zinc-200 bg-white p-5 text-left shadow-sm">
+          <label className="text-sm font-bold text-navy" htmlFor="tool-text">
+            Text
+          </label>
+          <input
+            id="tool-text"
+            value={text}
+            onChange={(event) => setText(event.target.value)}
+            placeholder={
+              tool.slug === "watermark-pdf"
+                ? "Watermark text"
+                : tool.slug === "sign-pdf"
+                  ? "Signature name"
+                  : "Text to add"
+            }
+            className="mt-3 w-full rounded-md border border-zinc-200 px-4 py-3 outline-none transition focus:border-red-500"
+          />
+        </div>
+      ) : null}
+
+      {helperText ? (
+        <p className="mt-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-800">
+          {helperText}
+        </p>
+      ) : null}
+
       {selectedFiles.length > 0 ? (
         <div className="mt-5 rounded-lg border border-red-100 bg-red-50 p-4 text-left">
           <p className="font-semibold text-red-700">
             {selectedFiles.length} file{selectedFiles.length === 1 ? "" : "s"} ready
             for {tool.name}
           </p>
-          <button
-            type="button"
-            onClick={handleProcess}
-            disabled={isProcessing}
-            className="mt-4 rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-red-300"
-          >
-            {isProcessing ? "Processing..." : `Run ${tool.name}`}
-          </button>
         </div>
+      ) : null}
+      {selectedFiles.length > 0 || !requiresUpload ? (
+        <button
+          type="button"
+          onClick={handleProcess}
+          disabled={isProcessing}
+          className="mt-5 rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-red-300"
+        >
+          {isProcessing ? "Processing..." : `Run ${tool.name}`}
+        </button>
       ) : null}
       {status ? (
         <p className="mt-4 rounded-md border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-navy/70">
@@ -217,6 +229,7 @@ export function ToolUpload({ tool }: ToolUploadProps) {
       {downloadUrl ? (
         <a
           href={downloadUrl}
+          download={downloadName}
           className="mt-4 inline-flex rounded-md bg-navy px-4 py-2 text-sm font-semibold text-white transition hover:bg-navy/90"
         >
           Download result

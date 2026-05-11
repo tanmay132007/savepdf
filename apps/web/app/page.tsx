@@ -218,7 +218,7 @@ export default function Home() {
                   <tr key={row[0]} className="border-t border-zinc-100">
                     {row.map((cell, index) => (
                       <td
-                        key={`${row[0]}-${cell}`}
+                        key={`${row[0]}-${index}`}
                         className={`px-5 py-4 ${
                           index === 1
                             ? "font-bold text-red-600"

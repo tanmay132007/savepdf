@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
-export default function SignupPage() {
+export default function AccountPage() {
   redirect("/gemini-key");
 }

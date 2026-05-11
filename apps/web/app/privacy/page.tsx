@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 const sections = [
   {
     title: "What Data We Collect",
-    body: "FreePDF does not require an account for core PDF tools and does not intentionally collect personal information from your documents."
+    body: "FreePDF does not require an account and does not intentionally collect personal information from your documents."
   },
   {
     title: "How Files Are Handled",
@@ -21,11 +21,11 @@ const sections = [
   },
   {
     title: "Third Party Services",
-    body: "FreePDF may use infrastructure providers such as Supabase and Render for authentication, storage, processing, and service operations."
+    body: "FreePDF may use infrastructure providers for storage, processing, and service operations. AI tools use the Gemini API key you provide in your browser."
   },
   {
     title: "Contact",
-    body: "For privacy questions, contact support@freepdf.app."
+    body: "For privacy questions, use the contact options on https://apps-freepdf.vercel.app."
   }
 ];
 

@@ -1,5 +1,7 @@
 import type { MetadataRoute } from "next";
 
+const siteUrl = "https://apps-freepdf.vercel.app";
+
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
@@ -7,6 +9,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: "/",
       disallow: ["/dashboard/", "/admin/", "/api/"]
     },
-    sitemap: "https://freepdf-psi.vercel.app/sitemap.xml"
+    sitemap: `${siteUrl}/sitemap.xml`
   };
 }

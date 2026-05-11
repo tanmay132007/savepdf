@@ -10,6 +10,8 @@ import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 
 const source = "web/.next";
 const target = ".next";
+const publicSource = "web/public";
+const publicTarget = "public";
 
 if (!existsSync(source)) {
   throw new Error(`Expected Next.js build output at ${source}`);
@@ -18,8 +20,17 @@ if (!existsSync(source)) {
 rmSync(target, { recursive: true, force: true });
 cpSync(source, target, { recursive: true });
 
+if (existsSync(publicSource)) {
+  rmSync(publicTarget, { recursive: true, force: true });
+  cpSync(publicSource, publicTarget, { recursive: true });
+}
+
 const sourceRoot = resolve(source);
 const targetRoot = resolve(target);
+const requiredServerFilesPath = join(target, "required-server-files.json");
+const requiredServerFiles = existsSync(requiredServerFilesPath)
+  ? JSON.parse(readFileSync(requiredServerFilesPath, "utf8")).files ?? []
+  : [];
 
 const toPosixPath = (path) => path.split(sep).join("/");
 
@@ -55,7 +66,7 @@ for (const traceFile of listTraceFiles(target)) {
   const trace = JSON.parse(readFileSync(targetPath, "utf8"));
 
   if (Array.isArray(trace.files)) {
-    trace.files = trace.files.map((file) => {
+    const tracedFiles = trace.files.map((file) => {
       const sourceFilePath = resolve(sourceDirectory, file);
       const absolutePath = isInside(sourceRoot, sourceFilePath)
         ? resolve(targetRoot, relative(sourceRoot, sourceFilePath))
@@ -63,6 +74,12 @@ for (const traceFile of listTraceFiles(target)) {
 
       return toPosixPath(relative(targetDirectory, absolutePath));
     });
+
+    const serverFiles = requiredServerFiles.map((file) =>
+      toPosixPath(relative(targetDirectory, resolve(file)))
+    );
+
+    trace.files = Array.from(new Set([...tracedFiles, ...serverFiles]));
   }
 
   writeFileSync(targetPath, `${JSON.stringify(trace)}\n`);

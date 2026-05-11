@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { FileText } from "lucide-react";
+import { FileKey, FileText } from "lucide-react";
 
 type NavbarProps = {
   onGetStarted?: () => void;
@@ -65,27 +65,12 @@ export function Navbar({ onGetStarted }: NavbarProps) {
 
         <div className="flex items-center gap-3">
           <Link
-            href="/login"
-            className="hidden text-sm font-semibold text-navy/70 transition hover:text-red-600 sm:inline"
+            href="/gemini-key"
+            className="inline-flex items-center gap-2 rounded-md bg-red-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-red-700"
           >
-            Sign In
+            <FileKey aria-hidden="true" size={17} />
+            Gemini Key
           </Link>
-          {onGetStarted ? (
-            <button
-              type="button"
-              onClick={onGetStarted}
-              className="rounded-md bg-red-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-red-700"
-            >
-              Get Started
-            </button>
-          ) : (
-            <Link
-              href="/signup"
-              className="rounded-md bg-red-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-red-700"
-            >
-              Sign Up
-            </Link>
-          )}
         </div>
       </nav>
     </header>

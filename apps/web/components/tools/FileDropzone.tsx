@@ -22,6 +22,11 @@ export function FileDropzone({
   const [error, setError] = useState("");
 
   const acceptValue = useMemo(() => accept.join(","), [accept]);
+  const fileLabel = accept.some((value) => value.startsWith("image/"))
+    ? "images"
+    : accept.some((value) => value.startsWith("."))
+      ? "files"
+      : "PDF";
 
   const handleFiles = useCallback(
     (fileList: FileList | null) => {
@@ -80,9 +85,9 @@ export function FileDropzone({
       <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-lg bg-red-600 text-white">
         <UploadCloud aria-hidden="true" size={30} />
       </div>
-      <p className="text-lg font-bold text-navy">Choose a PDF or drag it here</p>
+      <p className="text-lg font-bold text-navy">Choose {fileLabel} or drag here</p>
       <p className="mt-2 text-sm text-navy/55">
-        PDF only, up to {maxSizeMB}MB
+        Up to {maxSizeMB}MB per file
       </p>
       {error ? <p className="mt-4 text-sm font-semibold text-red-600">{error}</p> : null}
     </label>

@@ -1,8 +1,9 @@
 import type { MetadataRoute } from "next";
 import { tools } from "@/lib/tools";
 
+const baseUrl = "https://apps-freepdf.vercel.app";
+
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://freepdf-psi.vercel.app";
 
   const toolPages = tools.map((tool) => ({
     url: `${baseUrl}/tools/${tool.slug}`,
